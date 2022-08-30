@@ -24,7 +24,7 @@ I certificati elettronici per:
     - la cifratura dei messaggi scambiati tra enti federati;
 
 sono contenuti, all'interno di elementi :xml:`<KeyDescriptor>` con attributo :xml:`<use>` valorizzato, rispettivamente, come :code:`<signing>` o :code:`<encryption>`.
-I certificati elettronici afferenti a chiavi crittografiche utilizzate dagli enti federati per altri scopi sono contenute in ulteriori estensioni SAML dei metadata.
+I certificati elettronici afferenti a chiavi crittografiche utilizzate dagli enti federati per altri scopi sono contenuti in ulteriori estensioni SAML dei metadata.
 Tutti i sigilli di federazione **devono** essere acclusi per intero mediante elementi :xml:`<KeyInfo>` contenenti il *payload* del certificato in un elemento :xml:`<X509Certificate>`. Tali elementi rispettano lo standard `XML Signature Syntax and Processing <https://www.w3.org/TR/xmldsig-core2/>`__ del `W3C <https://www.w3.org>`__, nella versione riportata nelle specifiche SAML di riferimento per lo schema *CieID*.
 
 ----------------------------------------
@@ -48,7 +48,6 @@ Ulteriori estensioni possono essere presenti nei certificati, purché non vadano
 -----------------------
 Algoritmi crittografici
 -----------------------
-Per la creazione di sigilli elettronici è utilizzato l'algoritmo crittografico RSA con lunghezza delle chiavi di almeno 1024 bit e algoritmo di *hash* SHA-256 o superiore (cioè con lunghezza dell'impronta crittografica pari almeno a 256 bit). 
+Per la creazione di sigilli elettronici è utilizzato l'algoritmo crittografico RSA con lunghezza delle chiavi di almeno 1024 bit e algoritmo di *hash* SHA-256 o superiore (cioè con lunghezza dell'impronta crittografica pari almeno a 256 bit).
 
 Per gli scopi di cifratura dei messaggi è adottato l'algoritmo crittografico AES con lunghezza delle chiavi di almeno 256 bit.
-
