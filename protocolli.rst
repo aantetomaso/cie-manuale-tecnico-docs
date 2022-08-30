@@ -7,7 +7,16 @@ Protocolli di comunicazione
 .. role:: xml(code)
   :language: xml
 
-Terminata la fase di federazione tramite lo scambio dei metadata opportunamente predisposti come da specifiche riportate nella precedente sezione, il Service Provider viene aggiunto nella *trusted list* dell'Identity Provider ed é quindi possibile lo scambio dei messaggi previsto dal protocollo SAML SSO. Tale protocollo viene avviato al momento in cui l'utente esprime la volontà di accedere al servizio cliccando il tasto "Entra con CIE" nella pagina html del Service Provider. Quest'ultimo prepara di conseguenza una richiesta di autenticazione (:xml:`<AuthnRequest>`) che inoltra all'Identity Provider al quale l'utente viene reindirizzato per effettuare l'autenticazione tramite la propria CIE. La componente server dell'Identity Provider (CieID Server) invita l'utente a avvicinare la propria CIE sul lettore avviando automaticamente il processo di autenticazione mediante la CIE. L'utente deve, quindi, inserire la seconda metà del PIN e confermare. 
+Terminata la fase di federazione tramite lo scambio dei metadata opportunamente predisposti come da specifiche riportate nella precedente sezione, il Service Provider viene aggiunto nella *trusted list* dell'Identity Provider ed é quindi possibile lo scambio dei messaggi previsto dal protocollo SAML SSO.
+
+Tale scambio viene avviato nel momento in cui l’utente esprime la volontà di accedere al servizio cliccando il tasto «Entra con CIE» nell’apposita pagina html del Service Provider. In seguito alla pressione del tasto “Entra con CIE” il SP predispone una richiesta di autenticazione (:xml:`<AuthnRequest>`) e la inoltra, reindirizzando opportunamente l’utente, all’Identity Provider del Ministero dell’Interno.
+
+La componente server dell’Identity Provider (CieID Server) interpreta la richiesta di autenticazione e avvia la cosiddetta fase di “challenge” che varia in funzione del livello di sicurezza richiesto dal Service Provider. In particolare:
+
+1. Invita l’utente a verificare le proprie credenziali username e password o a scansionare un QR Code mediante l’app CieID, in caso di accesso con livello di sicurezza “basso” (livello 1);
+2. Invita l’utente a verificare le proprie credenziali username e password e un secondo fattore di autenticazione OTP o a scansionare un QR Code mediante l’app CieID, in caso di accesso con livello di sicurezza “significativo” (livello 2);
+3. Invita l’utente a avvicinare la propria CIE sul lettore (RF o NFC) avviando automaticamente il processo di autenticazione mediante la CIE, in caso di accesso con livello di sicurezza “alto” (livello 3). Poggiata la carta sul lettore, allL’utente deve, quindi,viene richiesto di inserire la seconda metà del PIN e confermare.
+
 
 .. figure:: ./media/processoAutenticazioneCIE.png
    :alt: Processo di autenticazione del CieID Server
@@ -15,7 +24,9 @@ Terminata la fase di federazione tramite lo scambio dei metadata opportunamente 
 
    Processo di autenticazione del CieID Server
 
-Terminato il processo di autenticazione il server CieID mostra una pagina contenente gli attributi desunti dal certificato digitale a bordo della carta. L'utente, informato degli attributi che si stanno per inviare al servizio, prosegue con l'operazione e viene reindirizzato nuovamente sul sito del Service Provider, con un'asserzione (:xml:`<Response>`) firmata dall'Identity Provider contenente gli attributi richiesti (nome, cognome, data di nascita e codice fiscale).
+Terminato il processo di autenticazione il server CieID mostra una pagina contenente gli attributi qualificati  che si stanno per inviare al Service Provider (nome, cognome, data di nascita, codice fiscale e, se richiesti, numero di telefono ed e-mail) desunti dal certificato digitale a bordo della carta. L’utente, informato degli attributi che si stanno per inviare al servizio, fornisce il consenso all’invio e prosegue con l’operazione.
+
+L’Identity Provider reindirizza nuovamente l’utente   sul sito del Service Provider, con un'asserzione (:xml:`<Response>`) digitalmente firmata e contenente gli attributi qualificati richiesti.
 
 .. note::
 
@@ -24,13 +35,13 @@ Terminato il processo di autenticazione il server CieID mostra una pagina conten
     - Richiesta di autenticazione: :xml:`<AuthnRequest>`;
     - Risposta di autenticazione: :xml:`<Response>`.
 
-    La gestione del logout, attualmente, non supporta il procollo SAML, ma viene gestite mediante un meccanismo di *Simple Logout* che provvede all'eliminazione della sessione di autenticazione dell'Identity Provider. Pertanto, pur accettando le richieste SAML di *Single Logout*, l'IdP server CieID non restituisce alcuna risposta SAML.  
+    La gestione del logout, attualmente, non supporta il procollo SAML, ma viene gestite mediante un meccanismo di *Simple Logout* che provvede all'eliminazione della sessione di autenticazione dell'Identity Provider. Pertanto, pur accettando le richieste SAML di *Single Logout*, l'IdP server CieID non restituisce alcuna risposta SAML.
 
 
 Richiesta di autenticazione SAML
 ################################
 
-La richiesta di autenticazione ("*request*") è inviata dal Service Provider attraverso il browser dell'utente al *SingleSignOnService* dell'Identity Provider. Il messaggio contenuto in essa deve essere conforme allo standard SAML v2.0 (cfr. `Assertions and Protocols for the OASIS SAML V2.0 <https://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf>`__). 
+La richiesta di autenticazione ("*request*") è inviata dal Service Provider attraverso il browser dell'utente al *SingleSignOnService* dell'Identity Provider. Il messaggio contenuto in essa deve essere conforme allo standard SAML v2.0 (cfr. `Assertions and Protocols for the OASIS SAML V2.0 <https://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf>`__).
 
 L'elemento :xml:`<AuthnRequest>` costituisce il contenitore del messaggio e deve avere i seguenti attributi:
 
@@ -67,11 +78,11 @@ L'elemento :xml:`<AuthnRequest>` costituisce il contenitore del messaggio e deve
 
 Gli elementi che devono essere presenti all'interno della :xml:`<AuthnRequest>` sono:
 
-    - :xml:`<saml:Issuer>`: identifica in maniera univoca il Service Provider. L'elemento deve essere valorizzato come l'attributo :xml:`entityID` riportato nel corrispondente metadata del Service Provider. Prevede, inoltre, i seguenti attributi opzionali: 
+    - :xml:`<saml:Issuer>`: identifica in maniera univoca il Service Provider. L'elemento deve essere valorizzato come l'attributo :xml:`entityID` riportato nel corrispondente metadata del Service Provider. Prevede, inoltre, i seguenti attributi opzionali:
     - :xml:`NameQualifier`, dominio a cui afferisce il soggetto che sta effettuando la richiesta di autenticazione e valorizzato come URL riconducibile al Service Provider;
     - :xml:`Format`, se presente **deve** essere valorizzato con la stringa :code:`urn:oasis:names:tc:SAML:2.0:nameid-format:entity`.
 
-- :xml:`<NameIDPolicy>` avente l'attributo :xml:`Format` valorizzato con la stringa :code:`urn:oasis:names:tc:SAML:2.0:nameid-format:transient`, mentre invece **non deve** essere presente l'attributo :xml:`AllowCreate`. 
+- :xml:`<NameIDPolicy>` avente l'attributo :xml:`Format` valorizzato con la stringa :code:`urn:oasis:names:tc:SAML:2.0:nameid-format:transient`, mentre invece **non deve** essere presente l'attributo :xml:`AllowCreate`.
 - :xml:`<RequestedAuthnContext>` (ne è presente **una sola** occorrenza) specifica i requisiti del contesto di autenticazione di statement di autenticazione restituite in risposta a una richiesta. Esso è valorizzato come segue:
 
     - mediante l'attributo :xml:`Comparison`, che specifica il metodo di confronto utilizzato per valutare le classi o gli statement di contesto richiesti e può essere valorizzato soltanto come :code:`exact` (default), ovvero :code:`minimum`;
@@ -80,13 +91,13 @@ Gli elementi che devono essere presenti all'interno della :xml:`<AuthnRequest>` 
         - :code:`https://www.spid.gov.it/SpidL1`
         - :code:`https://www.spid.gov.it/SpidL2`
         - :code:`https://www.spid.gov.it/SpidL3`
-        
-Lo schema di autenticazione "*Entra con CIE*", nell'ottica di agevolare gli sviluppi implementativi da parte dei Service Provider che giá hanno aderito al Sistema Pubblico di Identità Digitale (*SPID*), richiede la valorizzazione di tale elemento con una delle suddette stringhe (corrispondenti ai tre livelli di affidabilità dello SPID), sebbene il livello di affidabilità dello schema CIE è sempre analogo al quello massimo previsto per tutti gli schemi di identificazione elettronica a livello europeo (analogo anche al Livello 3 di SPID).
+
+Lo schema di autenticazione "*Entra con CIE*", nell'ottica di agevolare gli sviluppi implementativi da parte dei Service Provider che giá hanno aderito al Sistema Pubblico di Identità Digitale (*SPID*), richiede la valorizzazione di tale elemento con una delle suddette stringhe (corrispondenti ai tre livelli di sicurezza SPID), secondo lo specifico livello di sicurezza richiesto (dall'utente o dal SP).
 Pertanto, per consentire al cittadino di autenticarsi sia a servizi accessibili tramite CIE, che a quelli accessibili tramite qualunque livello di sicurezza SPID, le possibili combinazioni di valori dell'elemento :xml:`<RequestedAuthnContextClassRef>` e dell'attributo-antenato :xml:`Comparison` sono, rispettivamente:
 
-- autenticazione con CIE ovvero con SPID di Livello 3: :code:`https://www.spid.gov.it/SpidL3` e, equivalentemente, :code:`exact` ovvero :code:`minimum`;
-- autenticazione con CIE ovvero con SPID di Livelli 2 o 3: :code:`https://www.spid.gov.it/SpidL2` e :code:`minimum`;
-- autenticazione con CIE ovvero con SPID (qualunque Livello): :code:`https://www.spid.gov.it/SpidL1` e :code:`minimum`;
+- autenticazione di livello "*alto*" (livello 3): :code:`https://www.spid.gov.it/SpidL3` e, equivalentemente, :code:`exact` ovvero :code:`minimum`;
+- autenticazione di livello almeno "*significativo*" (livello 2 o superiore): :code:`https://www.spid.gov.it/SpidL2` e :code:`minimum`;
+- autenticazione di livello "*basso*"" o superiore (livello 1 o superiore): :code:`https://www.spid.gov.it/SpidL1` e :code:`minimum`;
 
 
 .. note::
@@ -101,17 +112,17 @@ Si noti che l'elemento XML :xml:`<Signature>` nel seguente esempio va inserito s
 
 .. code-block:: xml
     :linenos:
-    
-    <samlp:AuthnRequest 
+
+    <samlp:AuthnRequest
       xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
-      xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" 
-      xmlns:ds="http://www.w3.org/2000/09/xmldsig#" 
-      AttributeConsumingServiceIndex="0" 
-      AssertionConsumerServiceURL=" [...] " 
-      ProtocolBinding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" 
+      xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
+      xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+      AttributeConsumingServiceIndex="0"
+      AssertionConsumerServiceURL=" [...] "
+      ProtocolBinding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
       Destination="https://idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO"
-      ForceAuthn="true" 
-      ID="..." 
+      ForceAuthn="true"
+      ID="..."
       IssueInstant="2020-11-02T09:01:25Z" Version="2.0">
         <saml:Issuer NameQualifier="https://service_provide_entityID">
             https://service_provider_entityID
@@ -145,7 +156,7 @@ Si noti che l'elemento XML :xml:`<Signature>` nel seguente esempio va inserito s
 
 
 
-    
+
 Risposta di autenticazione SAML
 ###############################
 
@@ -175,13 +186,13 @@ Esempio di *response* SAML
 .. code-block:: xml
     :linenos:
 
-    <samlp:Response 
+    <samlp:Response
       xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
       xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
-      Destination="https://service_provide_assertion_consumer" 
-      InResponseTo="..." 
-      IssueInstant="2020-10-29T11:36:02.708Z" 
-      ID="..." 
+      Destination="https://service_provide_assertion_consumer"
+      InResponseTo="..."
+      IssueInstant="2020-10-29T11:36:02.708Z"
+      ID="..."
       Version="2.0">
         <saml:Issuer>
             https://idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO
@@ -192,8 +203,8 @@ Esempio di *response* SAML
         <samlp:Status>
             <samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success" />
         </samlp:Status>
-        <saml:Assertion> 
-            [...] 
+        <saml:Assertion>
+            [...]
         </saml:Assertion>
     </samlp:Response>
 
@@ -204,7 +215,7 @@ L'elemento :xml:`<saml:Assertion>`
 ----------------------------------
 
 Nell'elemento :xml:`<Assertion>` devono essere presenti i seguenti attributi:
-    
+
     - :xml:`ID`: identificatore univoco basato su un *Universally Unique Identifier* (**UUID**) o su una combinazione origine + *timestamp* (quest'ultimo generato con una precisione di almeno un millesimo di secondo per garantire l'univocità);
     - :xml:`IssueInstant`: indica l'istante di emissione della richiesta, in formato UTC (:code:`AAAA-MM-GGThh:mm:ss.sssZ`);
     - :xml:`Version`: riferimento alla versione SAML (:code:`2.0`) utilizzata dallo schema *Entra con CIE*.
@@ -237,7 +248,7 @@ In particolare, a fronte della richiesta del *eIDAS Minimum Data Set* l'asserzio
 
 .. note::
 
-   L'elemento :xml:`<AuthnContextClassRef>` discendente dell'elemento :xml:`<AuthnStatement>` è **sempre** valorizzato con :code:`https://www.spid.gov.it/SpidL3` poiché la CIE fornisce un livello di affidabilità massimo a livello europeo, corispondente al Livello 3 del Sitema Pubblico dell'Identità Digitale (*SPID*). Per favorire l'interoperabilitá con SPID da parte dei Service Provider e minimizzare quindi l'impatto nella gestione implementativa delle risposte SAML per i SP che intendono aderere ad entrambi gli schemi di autenticazione, si restituisce dunque una classe analoa a quella usata dagli Identity Provider SPID nelle *response* associate ad autenticazioni avvenute con Livello 3. 
+   L'elemento :xml:`<AuthnContextClassRef>` discendente dell'elemento :xml:`<AuthnStatement>` è **sempre** valorizzato con :code:`https://www.spid.gov.it/SpidL3` poiché la CIE fornisce un livello di affidabilità massimo a livello europeo, corispondente al Livello 3 del Sitema Pubblico dell'Identità Digitale (*SPID*). Per favorire l'interoperabilitá con SPID da parte dei Service Provider e minimizzare quindi l'impatto nella gestione implementativa delle risposte SAML per i SP che intendono aderere ad entrambi gli schemi di autenticazione, si restituisce dunque una classe analoa a quella usata dagli Identity Provider SPID nelle *response* associate ad autenticazioni avvenute con Livello 3.
 
 
 
@@ -247,9 +258,9 @@ In particolare, a fronte della richiesta del *eIDAS Minimum Data Set* l'asserzio
     <saml:Assertion
       xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
       xmlns:xs="http://www.w3.org/2001/XMLSchema"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-      IssueInstant="2020-11-03T09:19:36.785Z" 
-      ID="..." 
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      IssueInstant="2020-11-03T09:19:36.785Z"
+      ID="..."
       Version="2.0">
         <saml:Issuer>
             https://idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO
@@ -258,27 +269,27 @@ In particolare, a fronte della richiesta del *eIDAS Minimum Data Set* l'asserzio
             [...]
         </ds:Signature>
         <saml:Subject>
-            <saml:NameID 
-              Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient" 
+            <saml:NameID
+              Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient"
               NameQualifier="https://idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO">
                 RIFERIMENTO ID ENTE
             </saml:NameID>
             <saml:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">
-                <saml:SubjectConfirmationData 
-                  InResponseTo="..." 
-                  NotOnOrAfter="2020-11-03T09:24:36.807Z" 
+                <saml:SubjectConfirmationData
+                  InResponseTo="..."
+                  NotOnOrAfter="2020-11-03T09:24:36.807Z"
                   Recipient="https://service_provider_assertion_consumer" />
             </saml:SubjectConfirmation>
         </saml:Subject>
-        <saml:Conditions 
-          NotBefore="2020-11-03T09:19:36.785Z" 
+        <saml:Conditions
+          NotBefore="2020-11-03T09:19:36.785Z"
           NotOnOrAfter="2020-11-03T09:24:36.785Z">
             <saml:AudienceRestriction>
                 <saml:Audience>https://sevice_provider</saml:Audience>
             </saml:AudienceRestriction>
         </saml:Conditions>
-        <saml:AuthnStatement 
-          AuthnInstant="2020-11-03T09:19:33.100Z" 
+        <saml:AuthnStatement
+          AuthnInstant="2020-11-03T09:19:33.100Z"
           SessionIndex="....">
             <saml:AuthnContext>
                 <saml:AuthnContextClassRef>https://www.spid.gov.it/SpidL3</saml:AuthnContextClassRef>
@@ -308,7 +319,7 @@ In particolare, a fronte della richiesta del *eIDAS Minimum Data Set* l'asserzio
 
     - L'attributo :xml:`Format` dell'elemento :xml:`<samlp:Issuer>` non è presente;
     - L'elemento :xml:`<saml:AuthnContextClassRef>` è valorizzato sempre con il valore **https://www.spid.gov.it/SpidL3**;
-    - Gli attributi inviati in risposta alla richiesta di autenticazione corrispondono sempre al **Minimum Dataset eIDAS** e non prevedono, nella versione attuale, l'invio di ulteriori attributi quali ad esempio lo *spidCode*. 
+    - Gli attributi inviati in risposta alla richiesta di autenticazione corrispondono sempre al **Minimum Dataset eIDAS** e non prevedono, nella versione attuale, l'invio di ulteriori attributi quali ad esempio lo *spidCode*.
 
 
 Verifica della :xml:`<Response>`
@@ -318,11 +329,11 @@ Alla ricezione della :xml:`<Response>` qualunque sia il binding utilizzato il Se
 
     - Controllo delle firme presenti all'interno dell':xml:`<Assertion>` e della :xml:`<Response>`
     - Verifica che nell'elemento :xml:`<SubjectConfirmationData>`
-     
+
         - l'attributo :xml:`Recipient` coincida con la AssertionConsumerServiceURL a cui la :xml:`<Response>` è pervenuta
         - l'attributo :xml:`NotOnOrAfter`  non sia scaduto
         - l'attributo :xml:`InResponseTo`  si riferisca correttamente all'ID della :xml:`<AuthnRequest>` di richiesta
-        
+
 .. note::
     É, inoltre, a carico del Service Provider garantire che le asserzioni non vengano ripresentate, mantenendo il set di identificatori di richiesta (ID) usati come per le :xml:`<AuthnRequest>` per tutta la durata di tempo per cui l'asserzione risulta essere valida in base dell'attributo :xml:`NotOnOrAfter` dell'elemento :xml:`<SubjectConfirmationData>` presente nell'asserzione stessa.
 
@@ -330,19 +341,19 @@ Esempio di :xml:`<saml:Response>`
 ---------------------------------
 
 Di seguito si riporta un esempio completo di :xml:`<saml:Response>`:
-    
+
 .. code-block:: xml
     :linenos:
 
-    <samlp:Response 
+    <samlp:Response
       xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
       xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
       xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
       xmlns:xs="http://www.w3.org/2001/XMLSchema"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-      Destination="https://service_provide_assertion_consumer" 
-      ID="..." 
-      InResponseTo="..." 
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      Destination="https://service_provide_assertion_consumer"
+      ID="..."
+      InResponseTo="..."
       IssueInstant="2020-10-29T11:36:02.708Z" Version="2.0">
         <saml:Issuer>
             https://idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO
@@ -370,10 +381,10 @@ Di seguito si riporta un esempio completo di :xml:`<saml:Response>`:
         <samlp:Status>
             <samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success" />
         </samlp:Status>
-        
-        <saml:Assertion 
-          ID="..." 
-          IssueInstant="2020-11-03T09:19:36.785Z" 
+
+        <saml:Assertion
+          ID="..."
+          IssueInstant="2020-11-03T09:19:36.785Z"
           Version="2.0">
             <saml:Issuer Format="urn:oasis:names:tc:SAML:2.0:nameid-format:entity">
                 https://idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO
@@ -399,27 +410,27 @@ Di seguito si riporta un esempio completo di :xml:`<saml:Response>`:
                 </ds:KeyInfo>
             </ds:Signature>
             <saml:Subject>
-                <saml:NameID 
-                  Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient" 
+                <saml:NameID
+                  Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient"
                   NameQualifier="https://idserver.servizicie.interno.gov.it/idp/profile/SAML2/POST/SSO">
                     RIFERIMENTO ID ENTE
                 </saml:NameID>
                 <saml:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">
-                    <saml:SubjectConfirmationData 
-                      InResponseTo="..." 
-                      NotOnOrAfter="2020-11-03T09:24:36.807Z" 
+                    <saml:SubjectConfirmationData
+                      InResponseTo="..."
+                      NotOnOrAfter="2020-11-03T09:24:36.807Z"
                       Recipient="https://service_provider_assertion_consumer" />
                 </saml:SubjectConfirmation>
             </saml:Subject>
-            <saml:Conditions 
-              NotBefore="2020-11-03T09:19:36.785Z" 
+            <saml:Conditions
+              NotBefore="2020-11-03T09:19:36.785Z"
               NotOnOrAfter="2020-11-03T09:24:36.785Z">
                 <saml:AudienceRestriction>
                     <saml:Audience>https://sevice_provider</saml:Audience>
                 </saml:AudienceRestriction>
             </saml:Conditions>
-            <saml:AuthnStatement 
-              AuthnInstant="2020-11-03T09:19:33.100Z" 
+            <saml:AuthnStatement
+              AuthnInstant="2020-11-03T09:19:33.100Z"
               SessionIndex="....">
                 <saml:AuthnContext>
                     <saml:AuthnContextClassRef>https://www.spid.gov.it/SpidL3</saml:AuthnContextClassRef>
@@ -440,19 +451,18 @@ Di seguito si riporta un esempio completo di :xml:`<saml:Response>`:
                 </saml:Attribute>
             </saml:AttributeStatement>
         </saml:Assertion>
-        
-        
-        
-.. _logout:        
+
+
+
+.. _logout:
 
 Logout
 ######
 
-Lo schema di autenticazione Entra con CIE, nella versione attuale, non implementa il Single logout SAML. Il meccanismo di logout previsto gestisce la sola sessione relativa all'Identity Provider non propagando il logout sulle relative sessioni dei Service Provider. A tal proposito é onere del Service Provider garantire il logout al proprio servizio autenticato tramite un apposito endpoint presente nei metadata dell'Identity Provider all'interno del tag :xml:`<SingleLogoutService>` che viene invocato mediante HTTP-GET e che reinderizza su una apposita pagina dell'IdP server CieID recante il messaggio "Logout effettuato con successo". 
+Lo schema di autenticazione Entra con CIE, nella versione attuale, non implementa il Single logout SAML. Il meccanismo di logout previsto gestisce la sola sessione relativa all'Identity Provider non propagando il logout sulle relative sessioni dei Service Provider. A tal proposito é onere del Service Provider garantire il logout al proprio servizio autenticato tramite un apposito endpoint presente nei metadata dell'Identity Provider all'interno del tag :xml:`<SingleLogoutService>` che viene invocato mediante HTTP-GET e che reinderizza su una apposita pagina dell'IdP server CieID recante il messaggio "Logout effettuato con successo".
 
 .. figure:: ./media/SimpleLogout.png
    :alt: Schermata di logout
    :name: logout-entra-con-cie
 
    Schermata di conferma di avvenuto Logout.
-
